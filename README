@@ -1,0 +1,48 @@
+#################################################################################################
+# Copyright ©2012 lee8oi@gmail.com 
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the 
+# GNU General Public License for more details.
+# http://www.gnu.org/licenses/
+#
+#-----------------------------------------------------------------------
+# headlines eggdrop script by lee8oi@gmail.com
+#
+# There's plenty of eggdrop news syndication scripts if you are looking for something automatic. 
+# This script is for retrieving news now. Right from the source. The source can be a feed url directly or
+# it can be the name of one of the preconfigured feeds. The output is sent to your nick through
+# the irc notice system keeping the public channels spam free. The direct approach to handling feeds
+# allows the script manage more news sources than your average eggdrop news script. We only get the
+# news we ask for, when we ask for it, nothing else.
+# 
+# This script is currently written for utf-8 patched bots and assumes the users system is utf-8.
+# It currenly supports RSS and Atom feeds. Its main job is to retrieve the headlines(titles & links).
+# You can specify feed by feed name or use a url and optionally followed by how many headlines
+# you would like to see.
+#
+# Note: Encoding issues are common. If you have problems please make sure your bot is patched for
+# utf-8 as outlined here: http://eggwiki.org/Utf-8
+# If you still have problems consider updating to the latest tcl8.6 and recompiling your bot. This
+# script DOES WORK. Its just hard to fix all the possible encoding issues up front. I'll work in the
+# fixes as I go. Check the 'Custom Charsets' section in 'Configuration' for more information about
+# setting charsets for specific feeds.
+#
+# Currently you can call the rss script from any channel the bot resides in or my using /msg or /query. 
+# The output is 'noticed' directly to you.
+#
+# Usage:
+#
+# Retrieve news:
+# !news <feedname-or-url> ?how-many?
+#
+# List the available feeds
+# !feeds
+#
+#################################################################################################
