@@ -1,5 +1,5 @@
 namespace eval headlines {
-set ver 0.1.4
+set ver 0.1.5
 #################################################################################################
 # Copyright ©2012 lee8oi@gmail.com
 #
@@ -36,7 +36,7 @@ set ver 0.1.4
 # fixes as I go. Check the 'Custom Charsets' section in 'Configuration' for more information about
 # setting charsets for specific feeds.
 #
-# Currently you can call the rss script from any channel the bot resides in or my using /msg or /query. 
+# Currently you can call the rss script from any channel the bot resides in or by using /msg or /query. 
 # The output is 'noticed' directly to you.
 #
 # Usage:
@@ -50,7 +50,7 @@ set ver 0.1.4
 #################################################################################################
 # Configuration:
 #
-# Default number of headlines to show
+# Default number of headlines to show when ?how-many? is not specified.
 	variable numberOfheadlines  5
 #
 # Feeds
@@ -58,12 +58,11 @@ set ver 0.1.4
   set feeds(linuxtoday) "http://feeds.feedburner.com/linuxtoday/linux?format=xml"
   set feeds(securitynow) "http://leoville.tv/podcasts/sn.xml"
   set feeds(krotkie) "http://www.joemonster.org/backend.php?channel=krotkie"
-  set feeds(bfh) "http://www.battlefieldheroes.com/en/forum/syndication.php?fid=43&limit=5"
-  set feeds(bfha) "http://www.battlefieldheroes.com/en/forum/syndication.php?fid=94&type=atom1.0&limit=15"
+  set feeds(bfh-alerts) "http://www.battlefieldheroes.com/en/forum/syndication.php?fid=43&limit=5"
+  set feeds(bfh-main) "http://www.battlefieldheroes.com/en/forum/syndication.php?fid=94&type=atom1.0&limit=15"
   set feeds(rususa) "http://www.rususa.com/tools/rss/feed.asp-rss-newsrus"
-  set feeds(zhong) "http://news.google.com/news?ned=cn&topic=po&output=rss"
-  set feeds(japan) "http://rss.support.apple.com/ja_JP/"
-  set feeds(swedish) "http://www.nrk.no/sport/fotball/siste.rss"
+  set feeds(google-china) "http://news.google.com/news?ned=cn&topic=po&output=rss"
+  set feeds(apple-japan) "http://rss.support.apple.com/ja_JP/"
 	set feeds(linuxtoday) "http://feeds.feedburner.com/linuxtoday/linux?format=xml"
 	set feeds(mageia-group) "http://identi.ca/api/statusnet/groups/timeline/16485.rss"
   
