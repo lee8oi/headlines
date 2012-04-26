@@ -1,7 +1,7 @@
 namespace eval headlines {
-set ver 0.1.5
+set ver 0.1.6
 #################################################################################################
-# Copyright ©2012 lee8oi@gmail.com
+# Copyright 2012 lee8oi@gmail.com
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -78,6 +78,15 @@ set ver 0.1.5
 # set charset(feedname) "euc-jp"
 #
   set charset(japan) "euc-jp"
+#
+#
+# which method should be used when shortening the url?
+# 0 --> http://tinyurl.com
+# 1 --> http://u.nu
+# 2 --> http://is.gd
+# 3 --> http://cli.gs
+# ---  [ 0 - 5 ]
+variable urlShortType 0
 
 # END OF FEED CONFIGURATION
 #################################################################################################
@@ -105,7 +114,7 @@ proc flist {nick args} {
 	foreach item [array names ::headlines::feeds] {
 		append result "$item "
 	}
-	puthelp "notice $nick : Available feeds: $result"
+	return $result
 }
 proc grabnews {target text} {
 	set arr [split $text]
@@ -116,14 +125,6 @@ proc grabnews {target text} {
 		set url $feed
 	} elseif {[info exists ::headlines::feeds($feed)]} {
 		set url $::headlines::feeds($feed)
-	} else {
-		if {$feed == ""} {
-			puthelp "notice $target : Usage !news <feed-or-url> ?num?"
-			return
-		} else {
-			puthelp "notice $target : No feed url found for $feed"
-			return
-		}
 	}
 	if (![string is integer -strict $numb]) {
 		set numb [set ::headlines::numberOfheadlines]
@@ -140,7 +141,8 @@ proc grabnews {target text} {
 			regexp {<link.*?>(.*?)</link}     $item subl link
 			if {![info exists title]} {set title "(none)"} {set title [unhtml [join [split $title]]]}
 			if {![info exists link]}  {set link  "(none)"} {set link [unhtml [join [split $link]]]}
-			puthelp "notice $target : $title ($link)"
+			set tinyurl [::headlines::tinyurl $link]
+			puthelp "notice $target : $title ($tinyurl)"
 			if {($count == $numb)} {
 				return
 			} else {
@@ -155,7 +157,8 @@ proc grabnews {target text} {
 			regexp {<link.*?href=\"(.*?)\"} $item sub1 link
 			if {![info exists title]} {set title "(none)"} {set title [unhtml [join [split $title]]]}
 			if {![info exists link]}  {set link  "(none)"} {set link [unhtml [join [split $link]]]}
-			puthelp "notice $target : $feed $title ($link)"
+			set tinyurl [::headlines::tinyurl $link]
+			puthelp "notice $target : $feed $title ($tinyurl)"
 			if {($count == $numb)} {
 				return
 			} else {
@@ -164,7 +167,7 @@ proc grabnews {target text} {
 		}
 	}
 }
-proc news {nick host nick chan text} {
+proc news {nick host user chan text} {
 	set arr [split $text]
 	set feed [string tolower [lindex $arr 0]]
 	set numb [string tolower [lindex $arr 1]]
@@ -174,11 +177,13 @@ proc news {nick host nick chan text} {
 	} elseif {[info exists ::headlines::feeds($feed)]} {
 		set url $::headlines::feeds($feed)
 	} else {
+		set result [::headlines::flist $nick]
+		set available "Available feeds: $result"
 		if {$feed == ""} {
-			puthelp "notice $nick : Usage !news <feed-or-url> ?num?"
+			puthelp "notice $nick : Usage !news <feed-or-url> ?num? ~~ $available"
 			return
 		} else {
-			puthelp "notice $nick : No feed url found for $feed"
+			puthelp "notice $nick : Invalid feed ~~ $available"
 			return
 		}
 	}
@@ -310,6 +315,16 @@ proc unhtml {{data ""}} {
 	while {[string match "*  *" $data]} { regsub -all "  " $data " " data }
 	return [string trim $data]
 }
+proc tinyurl {url} {
+   set ua "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.0.5) Gecko/2008120122 Firefox/3.0.5"
+   set http [::http::config -useragent $ua -urlencoding "utf-8"]
+   set query "http://tinyurl.com/api-create.php?[http::formatQuery url $url]"
+   set token [http::geturl $query -timeout 3000]
+   upvar #0 $token state
+   if {[string length $state(body)]} { return [string map {"\n" ""} $state(body)] }
+		putlog "tiny url set to $url"
+   return $url
+}
 proc htmldecode {{data ""}} {
 	if {($data == "")} {puts "remove html markup codes from data. usage: htmldecode <data>"; return}
 	if {![string match *&* $data]} {return $data}
@@ -378,4 +393,4 @@ proc htmldecode {{data ""}} {
 	return $data
 }
 }
-putlog "headlines $::headlines::ver loaded"
+putlog "Headlines $::headlines::ver loaded"
