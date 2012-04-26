@@ -1,5 +1,5 @@
 namespace eval headlines {
-set ver 0.1.9
+set ver 0.2.0
 #################################################################################################
 # Copyright 2012 lee8oi@gmail.com
 #
@@ -170,7 +170,7 @@ proc grabnews {target text} {
 			regexp {<link.*?href=\"(.*?)\"} $item sub1 link
 			if {![info exists title]} {set title "(none)"} {set title [unhtml [join [split $title]]]}
 			if {![info exists link]}  {set link  "(none)"} {set link [unhtml [join [split $link]]]}
-			set tinyurl [::headlines::tinyurl $link]
+			set tinyurl [::headlines::tinyurl2 $link]
 			puthelp "notice $target : $feed $title ($tinyurl)"
 			if {($count == $numb)} {
 				return
