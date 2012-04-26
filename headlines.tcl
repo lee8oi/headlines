@@ -1,5 +1,5 @@
 namespace eval headlines {
-set ver 0.1.8
+set ver 0.1.9
 #################################################################################################
 # Copyright 2012 lee8oi@gmail.com
 #
@@ -16,6 +16,7 @@ set ver 0.1.8
 #
 #-----------------------------------------------------------------------
 # headlines eggdrop script by lee8oi@gmail.com
+# https://github.com/lee8oi/headlines/blob/master/headlines.tcl
 #
 # There's plenty of eggdrop news syndication scripts if you are looking for something automatic. 
 # This script is for retrieving news now. Right from the source. The source can be a feed url directly or
@@ -65,6 +66,7 @@ set ver 0.1.8
   set feeds(apple-japan) "http://rss.support.apple.com/ja_JP/"
 	set feeds(linuxtoday) "http://feeds.feedburner.com/linuxtoday/linux?format=xml"
 	set feeds(mageia-group) "http://identi.ca/api/statusnet/groups/timeline/16485.rss"
+	set feeds(lxer) "http://lxer.com/module/newswire/headlines.rss"
   
 # Custom charsets
 #  Usage: set charset(feedname) "charset"
@@ -80,14 +82,6 @@ set ver 0.1.8
   set charset(japan) "euc-jp"
 #
 #
-# which method should be used when shortening the url?
-# 0 --> http://tinyurl.com
-# 1 --> http://u.nu
-# 2 --> http://is.gd
-# 3 --> http://cli.gs
-# ---  [ 0 - 5 ]
-variable urlShortType 0
-
 # END OF FEED CONFIGURATION
 #################################################################################################
 }
@@ -145,8 +139,14 @@ proc grabnews {target text} {
 	set data [::headlines::fetch $feed $url]
 	regexp {(?i)<rss.*>(.*?)</rss>} $data rssdata none
 	regexp {(?i)<feed.*>(.*?)</feed>} $data atomdata none
-	if {[info exists rssdata]} {
-		regsub -all {(?i)<items.*?>.*?</items>} $rssdata {} data
+	regexp {(?i)<rdf:RDF.*>(.*?)</rdf:RDF>} $data rdfdata none
+	if {([info exists rssdata]) || ([info exists rdfdata])} {
+		if {[info exists rssdata]} {
+			set data $rssdata
+		} elseif {[info exists rdfdata]} {
+			set data $rdfdata
+		}
+		regsub -all {(?i)<items.*?>.*?</items>} $data {} data
 		set count 1
 		foreach {foo item} [regexp -all -inline {(?i)<item.*?>(.*?)</item>} $data] {
 			set item [string map {"<![CDATA[" "" "]]>" ""} $item]
