@@ -1,5 +1,5 @@
 namespace eval headlines {
-set ver 0.1.6
+set ver 0.1.7
 #################################################################################################
 # Copyright 2012 lee8oi@gmail.com
 #
@@ -95,9 +95,9 @@ package require http
 if {![catch {package require tls}]} { ::http::register https 443 ::tls::socket }
 bind pub - !rss ::headlines::news
 bind pub - !atom ::headlines::news
-bind pub - !news ::headlines::news
-bind pub - !feeds ::headlines::flist
-bind msg - !feeds ::headlines::flist
+bind pub - !news ::headlines::pub_news
+bind pub - !feeds ::headlines::grabflist
+bind msg - !feeds ::headlines::grabflist
 bind msg - !news ::headlines::msg_news
 bind pub - !test ::headlines::pub_news
 namespace eval headlines {
@@ -107,8 +107,11 @@ proc msg_news {nick userhost handle text} {
 proc pub_news {nick host user chan text} {
 	::headlines::grabnews $nick $text
 }
-
-proc flist {nick args} {
+proc grabflist {nick args} {
+	set result [::headlines::flist]
+	puthelp "notice $nick : Available feeds: $result"
+}
+proc flist {args} {
 	#:get list of feeds available:::::::::::::::::::::::::::::::::::::::::::
 	variable feeds; set result ""
 	foreach item [array names ::headlines::feeds] {
@@ -125,6 +128,16 @@ proc grabnews {target text} {
 		set url $feed
 	} elseif {[info exists ::headlines::feeds($feed)]} {
 		set url $::headlines::feeds($feed)
+	} else {
+		set result [::headlines::flist]
+		set available "Available feeds: $result"
+		if {$feed == ""} {
+			puthelp "notice $target : Usage !news <feed-or-url> ?num? ~~ $available"
+			return
+		} else {
+			puthelp "notice $target : Invalid feed ~~ $available"
+			return
+		}
 	}
 	if (![string is integer -strict $numb]) {
 		set numb [set ::headlines::numberOfheadlines]
@@ -165,67 +178,11 @@ proc grabnews {target text} {
 				incr count
 			}
 		}
-	}
-}
-proc news {nick host user chan text} {
-	set arr [split $text]
-	set feed [string tolower [lindex $arr 0]]
-	set numb [string tolower [lindex $arr 1]]
-	if {[string length $feed] >= 10 && [regexp {^(f|ht)tp(s|)://} $feed] && ![regexp {://([^/:]*:([^/]*@|\d+(/|$))|.*/\.)} $feed]} {
-		puthelp "notice $nick : Url detected : $feed"
-		set url $feed
-	} elseif {[info exists ::headlines::feeds($feed)]} {
-		set url $::headlines::feeds($feed)
 	} else {
-		set result [::headlines::flist $nick]
-		set available "Available feeds: $result"
-		if {$feed == ""} {
-			puthelp "notice $nick : Usage !news <feed-or-url> ?num? ~~ $available"
-			return
-		} else {
-			puthelp "notice $nick : Invalid feed ~~ $available"
-			return
-		}
-	}
-	if (![string is integer -strict $numb]) {
-		set numb [set ::headlines::numberOfheadlines]
-	}
-	set data [::headlines::fetch $feed $url]
-	regexp {(?i)<rss.*>(.*?)</rss>} $data rssdata none
-	regexp {(?i)<feed.*>(.*?)</feed>} $data atomdata none
-	if {[info exists rssdata]} {
-		regsub -all {(?i)<items.*?>.*?</items>} $rssdata {} data
-		set count 1
-		foreach {foo item} [regexp -all -inline {(?i)<item.*?>(.*?)</item>} $data] {
-			set item [string map {"<![CDATA[" "" "]]>" ""} $item]
-			regexp {<title.*?>(.*?)</title>}  $item subt title
-			regexp {<link.*?>(.*?)</link}     $item subl link
-			if {![info exists title]} {set title "(none)"} {set title [unhtml [join [split $title]]]}
-			if {![info exists link]}  {set link  "(none)"} {set link [unhtml [join [split $link]]]}
-			puthelp "notice $nick : $title ($link)"
-			if {($count == $numb)} {
-				return
-			} else {
-				incr count
-			}
-		}
-	} elseif {[info exists atomdata]} {
-		set count 1
-		foreach {foo item} [regexp -all -inline {(?i)<entry.*?>(.*?)</entry>} $atomdata] {
-			set item [string map {"<![CDATA[" "" "]]>" ""} $item]
-			regexp {<title.*?>(.*?)</title>}  $item subt title
-			regexp {<link.*?href=\"(.*?)\"} $item sub1 link
-			if {![info exists title]} {set title "(none)"} {set title [unhtml [join [split $title]]]}
-			if {![info exists link]}  {set link  "(none)"} {set link [unhtml [join [split $link]]]}
-			puthelp "notice $nick : $feed $title ($link)"
-			if {($count == $numb)} {
-				return
-			} else {
-				incr count
-			}
-		}
+		puthelp "notice $target : No news data found."
 	}
 }
+
 proc fetch {feed {url ""}} {
 	set ua "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.0.5) Gecko/2008120122 Firefox/3.0.5"
 	set http [::http::config -useragent $ua]
@@ -280,7 +237,11 @@ proc fetch {feed {url ""}} {
 				set char "None Given" ; set char2 "None Given" ; set mset "None Given"
 			}
 		}
-		set char3 [string tolower [string map -nocase {"UTF-" "utf-" "iso-" "iso" "windows-" "cp" "shift_jis" "shiftjis"} $state(charset)]]
+		if {[info exists state(charset)]} {
+			set char3 [string tolower [string map -nocase {"UTF-" "utf-" "iso-" "iso" "windows-" "cp" "shift_jis" "shiftjis"} $state(charset)]]
+		} else {
+			set char3 "utf-8"
+		}
 		set char [string trim $char2 {;}]
 		if {($char2 == "None Given") && ($char3 != "None Given")} {
 			set char $char3
