@@ -1,5 +1,5 @@
 namespace eval headlines {
-set ver 0.1.7
+set ver 0.1.8
 #################################################################################################
 # Copyright 2012 lee8oi@gmail.com
 #
@@ -132,7 +132,7 @@ proc grabnews {target text} {
 		set result [::headlines::flist]
 		set available "Available feeds: $result"
 		if {$feed == ""} {
-			puthelp "notice $target : Usage !news <feed-or-url> ?num? ~~ $available"
+			puthelp "notice $target : Usage: !news <feed-or-url> ?num? ~~ $available"
 			return
 		} else {
 			puthelp "notice $target : Invalid feed ~~ $available"
@@ -154,7 +154,7 @@ proc grabnews {target text} {
 			regexp {<link.*?>(.*?)</link}     $item subl link
 			if {![info exists title]} {set title "(none)"} {set title [unhtml [join [split $title]]]}
 			if {![info exists link]}  {set link  "(none)"} {set link [unhtml [join [split $link]]]}
-			set tinyurl [::headlines::tinyurl $link]
+			set tinyurl [::headlines::tinyurl2 $link]
 			puthelp "notice $target : $title ($tinyurl)"
 			if {($count == $numb)} {
 				return
@@ -276,15 +276,19 @@ proc unhtml {{data ""}} {
 	while {[string match "*  *" $data]} { regsub -all "  " $data " " data }
 	return [string trim $data]
 }
-proc tinyurl {url} {
-   set ua "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.0.5) Gecko/2008120122 Firefox/3.0.5"
-   set http [::http::config -useragent $ua -urlencoding "utf-8"]
-   set query "http://tinyurl.com/api-create.php?[http::formatQuery url $url]"
-   set token [http::geturl $query -timeout 3000]
-   upvar #0 $token state
-   if {[string length $state(body)]} { return [string map {"\n" ""} $state(body)] }
-		putlog "tiny url set to $url"
-   return $url
+proc tinyurl2 {url} {
+  set ua "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.0.5) Gecko/2008120122 Firefox/3.0.5"
+  set http [::http::config -useragent $ua -urlencoding "utf-8"]
+  set query "http://tinyurl.com/api-create.php?[http::formatQuery url $url]"
+  set token [http::geturl $query -timeout 3000]
+  upvar #0 $token state
+  if {[string length $state(body)]} {
+		set result [string map {"\n" ""} $state(body)]
+	}
+	if {($result == "Error")} {
+		set result [::headlines::tinyurl $url]
+	}
+  return $result
 }
 proc htmldecode {{data ""}} {
 	if {($data == "")} {puts "remove html markup codes from data. usage: htmldecode <data>"; return}
