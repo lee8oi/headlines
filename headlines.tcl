@@ -73,6 +73,7 @@ set ver 0.2.1
 	set feeds(mageia-group) "http://identi.ca/api/statusnet/groups/timeline/16485.rss"
 	set feeds(lxer) "http://lxer.com/module/newswire/headlines.rss"
 	set feeds(yahoo) "http://news.yahoo.com/rss/"
+	set feeds(testing) "not.a.valid.url"
   
 # ~Custom Charsets~
 #
@@ -141,6 +142,10 @@ proc grabnews {target text} {
 		set url $feed
 	} elseif {[info exists ::headlines::feeds($feed)]} {
 		set url $::headlines::feeds($feed)
+		if {![regexp {^(f|ht)tp(s|)://} $url] || [regexp {://([^/:]*:([^/]*@|\d+(/|$))|.*/\.)} $url]} {
+			puthelp "notice $target : Feed Error: invalid url format specified for $feed feed ($url)"
+			return
+		}
 	} else {
 		set result [::headlines::flist]
 		set available "Available feeds: $result"
@@ -221,10 +226,12 @@ proc fetch {feed {url ""}} {
 				::http::cleanup $http
 				catch {set http [::http::geturl $value -timeout 60000]} error
 				if {![string match -nocase "::http::*" $error]} {
-					return "http error: [string totitle $error] \( $value \)"
+					puthelp "notice $nick : http error: [string totitle $error] \( $value \)"
+					return
 				}
 				if {![string equal -nocase [::http::status $http] "ok"]} {
-					return "status: [::http::status $http]"
+					puthelp "notice $nick : http status: [::http::status $http]"
+					return
 				}
 				set url [string map {" " "%20"} $value]
 				upvar #0 $http state
@@ -261,7 +268,7 @@ proc fetch {feed {url ""}} {
 			set char3 "utf-8"
 		}
 		set char [string trim $char2 {;}]
-		if {($char2 == "None Given") && ($char3 != "None Given")} {
+		if {($char2 == "None Given")} {
 			set char $char3
 		} else {
 			set char $char2
