@@ -215,8 +215,8 @@ proc fetch {feed {url ""}} {
 				upvar #0 $http state
 				if {[incr r] > 10} { puthelp "notice $nick : redirect error (>10 too deep) \( $url \)" ; return 0}
 				set data [::http::data $http]
-				::http::cleanup $http
 			}
+			::http::cleanup $http
 		}
 		# url is now stored in $url variable
 		set html $data
@@ -270,7 +270,6 @@ proc fetch {feed {url ""}} {
 	}
 }
 proc unhtml {{data ""}} {
-	if {($data == "")} {puts "remove html tags from data. usage: unhtml <data>"; return}
 	regsub -all "(?:<b>|</b>|<b />|<em>|</em>|<strong>|</strong>)" $data"\002" data
 	regsub -all "(?:<u>|</u>|<u />)" $data "\037" data
 	regsub -all "(?:<br>|<br/>|<br />)" $data ". " data
@@ -295,7 +294,6 @@ proc tinyurl {url} {
   return $result
 }
 proc htmldecode {{data ""}} {
-	if {($data == "")} {puts "remove html markup codes from data. usage: htmldecode <data>"; return}
 	if {![string match *&* $data]} {return $data}
 	set escapes {
 							 &nbsp; \xa0 &iexcl; \xa1 &cent; \xa2 &pound; \xa3 &curren; \xa4
