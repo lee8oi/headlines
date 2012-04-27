@@ -83,7 +83,7 @@ set ver 0.2.0
 # For example, to set the charset for the japanese rss feed 'feedname':
 # set charset(feedname) "euc-jp"
 #
-  set charset(japan) "euc-jp"
+  set charset(apple-japan) "euc-jp"
 #
 #
 # END OF FEED CONFIGURATION
@@ -91,8 +91,8 @@ set ver 0.2.0
 }
 package require http
 if {![catch {package require tls}]} { ::http::register https 443 ::tls::socket }
-bind pub - !rss ::headlines::news
-bind pub - !atom ::headlines::news
+bind pub - !rss ::headlines::pub_news
+bind pub - !atom ::headlines::pub_news
 bind pub - !news ::headlines::pub_news
 bind pub - !feeds ::headlines::grabflist
 bind msg - !feeds ::headlines::grabflist
