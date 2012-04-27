@@ -61,6 +61,8 @@ set ver 0.2.1
 # Feeds
   set feeds(google) "http://news.google.com/news?ned=us&topic=h&output=rss"
   set feeds(linuxtoday) "http://feeds.feedburner.com/linuxtoday/linux?format=xml"
+	set feeds(linuxjournal) "http://feeds.feedburner.com/linuxjournalcom?format=xml"
+	set feeds(slashdot) "http://rss.slashdot.org/Slashdot/slashdotLinux"
   set feeds(securitynow) "http://leoville.tv/podcasts/sn.xml"
   set feeds(krotkie) "http://www.joemonster.org/backend.php?channel=krotkie"
   set feeds(bfh-alerts) "http://www.battlefieldheroes.com/en/forum/syndication.php?fid=43&limit=5"
@@ -68,9 +70,9 @@ set ver 0.2.1
   set feeds(rususa) "http://www.rususa.com/tools/rss/feed.asp-rss-newsrus"
   set feeds(google-china) "http://news.google.com/news?ned=cn&topic=po&output=rss"
   set feeds(apple-japan) "http://rss.support.apple.com/ja_JP/"
-	set feeds(linuxtoday) "http://feeds.feedburner.com/linuxtoday/linux?format=xml"
 	set feeds(mageia-group) "http://identi.ca/api/statusnet/groups/timeline/16485.rss"
 	set feeds(lxer) "http://lxer.com/module/newswire/headlines.rss"
+	set feeds(yahoo) "http://news.yahoo.com/rss/"
   
 # Custom charsets
 #  Usage: set charset(feedname) "charset"
@@ -216,9 +218,9 @@ proc fetch {feed {url ""}} {
 				if {[incr r] > 10} { puthelp "notice $nick : redirect error (>10 too deep) \( $url \)" ; return 0}
 				set data [::http::data $http]
 			}
-			::http::cleanup $http
 		}
 		# url is now stored in $url variable
+		::http::cleanup $http
 		set html $data
 		if {[regexp -nocase {"Content-Type" content=".*?; charset=(.*?)".*?>} $html - char]} {
 			set char [string trim [string trim $char "\"' /"] {;}]
