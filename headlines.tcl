@@ -1,5 +1,5 @@
 namespace eval headlines {
-set ver 0.2.0
+set ver 0.2.1
 ##############################################################################
 # Copyright 2012 lee8oi@gmail.com
 #
