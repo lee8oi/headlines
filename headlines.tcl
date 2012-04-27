@@ -19,23 +19,23 @@ set ver 0.2.1
 # https://github.com/lee8oi/headlines/blob/master/headlines.tcl
 #
 # There's plenty of eggdrop news syndication scripts if you are looking for
-# something automatic. This script is for retrieving news now. Right from the
-# source. The source can be a feed url directly or it can be the name of one
-# of the preconfigured feeds. The output is sent to your nick through the irc
-# notice system keeping the public channels spam free. The direct approach to
-# handling feeds allows the script manage more news sources than your average
-# eggdrop news script. We only get the news we ask for, when we ask for it,
-# nothing else.
+# something automatic. This script is for retrieving news headlines(titles w/links)
+# Right from the source. The source can be a feed url directly or it can be the 
+# name of one of the preconfigured feeds followed by the number of headlines you would
+# like. The output is sent to your nick through the irc notice system keeping the
+# public channels spam free. The direct approach to handling feeds allows the script
+# manage more news sources and it keeps a small foot print in memory because nothing
+# is stored, and nothing is running when nobody is reading the news. We only get the
+# headlines we ask for, when we ask for them, nothing else.
 # 
 # This script is currently written for utf-8 patched bots and assumes the users
-# system is utf-8. It currenly supports RSS and Atom feeds. Its main job is to
-# retrieve the headlines(titles & links). You can specify feed by feed name or
-# use a url and optionally followed by how many headlines you would like to see.
+# system is utf-8. It currenly supports RSS and Atom feeds.
 #
 # Note: Encoding issues are common. If you have problems please make sure your
 # bot is patched for utf-8 as outlined here: http://eggwiki.org/Utf-8
+#
 # If you still have problems consider updating to the latest tcl8.6 and
-# recompiling your bot. This script DOES WORK. Its just hard to fix all the
+# recompiling your bot. This script DOES WORK. Its just hard to detect & fix all the
 # possible encoding issues up front. I'll work in the fixes as I go. Check the
 # 'Custom Charsets' section in 'Configuration' for more information about
 # setting charsets for specific feeds.
@@ -74,18 +74,31 @@ set ver 0.2.1
 	set feeds(lxer) "http://lxer.com/module/newswire/headlines.rss"
 	set feeds(yahoo) "http://news.yahoo.com/rss/"
   
-# Custom charsets
-#  Usage: set charset(feedname) "charset"
+# ~Custom Charsets~
+#
+# Usage: set charset(feedname) "charset"
+# 
 # Use this section to specify the charset for a specific feed to be converted from.
-# This will convert the feed to unicode.
+# This will convert the feed to unicode, from the specified charset, so that special 
+# characters & other languages can be properly displayed.
 #
-# **This section currently is only used by japanese based rss feeds listed as 'utf-8'
-# if script detects "euc-jp" charset it will skip encoding as well as htmldecoding
-# in order to display japanese characters correctly in output.
+# The script attempts to automattically detect and resolve the charsets needed to
+# display the feed but its hard to correctly resolve all charsets this way. Hence
+# the addition of this section for specifying the charset manually.
+#
+# This section currently is only used by feeds listed as 'utf-8' but don't
+# display correctly (mixed characters, japanese, etc). If script detects *"utf-8-plain"
+# charset it will skip encoding as well as htmldecoding in order to display characters
+# correctly in output.
+#
+# *utf-8-plain is NOT a real charset. Its simply a fake charset that tells the script
+# to skip encoding AND htmldecode.
+#
 # For example, to set the charset for the japanese rss feed 'feedname':
-# set charset(feedname) "euc-jp"
+# set charset(feedname) "utf-8-plain"
 #
-  set charset(apple-japan) "euc-jp"
+  set charset(apple-japan) "utf-8-plain"
+	set charset(yahoo) "utf-8-plain" 
 #
 #
 # END OF FEED CONFIGURATION
@@ -219,7 +232,6 @@ proc fetch {feed {url ""}} {
 				set data [::http::data $http]
 			}
 		}
-		# url is now stored in $url variable
 		::http::cleanup $http
 		set html $data
 		if {[regexp -nocase {"Content-Type" content=".*?; charset=(.*?)".*?>} $html - char]} {
@@ -260,6 +272,10 @@ proc fetch {feed {url ""}} {
 		}
 		switch $char {
 			"euc-jp" {
+				#do nothing.
+			}
+			"utf-8-plain" {
+				#do nothing. 
 			}
 			default {
 				if {[string equal -nocase "utf-8" [encoding system]]} {
