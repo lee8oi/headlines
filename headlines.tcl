@@ -1,6 +1,6 @@
 namespace eval headlines {
 set ver 0.2.0
-#################################################################################################
+##############################################################################
 # Copyright 2012 lee8oi@gmail.com
 #
 # This program is free software; you can redistribute it and/or modify
@@ -14,31 +14,34 @@ set ver 0.2.0
 # GNU General Public License for more details.
 # http://www.gnu.org/licenses/
 #
-#-----------------------------------------------------------------------
+# -----------------------------------------------------------------------
 # headlines eggdrop script by lee8oi@gmail.com
 # https://github.com/lee8oi/headlines/blob/master/headlines.tcl
 #
-# There's plenty of eggdrop news syndication scripts if you are looking for something automatic. 
-# This script is for retrieving news now. Right from the source. The source can be a feed url directly or
-# it can be the name of one of the preconfigured feeds. The output is sent to your nick through
-# the irc notice system keeping the public channels spam free. The direct approach to handling feeds
-# allows the script manage more news sources than your average eggdrop news script. We only get the
-# news we ask for, when we ask for it, nothing else.
+# There's plenty of eggdrop news syndication scripts if you are looking for
+# something automatic. This script is for retrieving news now. Right from the
+# source. The source can be a feed url directly or it can be the name of one
+# of the preconfigured feeds. The output is sent to your nick through the irc
+# notice system keeping the public channels spam free. The direct approach to
+# handling feeds allows the script manage more news sources than your average
+# eggdrop news script. We only get the news we ask for, when we ask for it,
+# nothing else.
 # 
-# This script is currently written for utf-8 patched bots and assumes the users system is utf-8.
-# It currenly supports RSS and Atom feeds. Its main job is to retrieve the headlines(titles & links).
-# You can specify feed by feed name or use a url and optionally followed by how many headlines
-# you would like to see.
+# This script is currently written for utf-8 patched bots and assumes the users
+# system is utf-8. It currenly supports RSS and Atom feeds. Its main job is to
+# retrieve the headlines(titles & links). You can specify feed by feed name or
+# use a url and optionally followed by how many headlines you would like to see.
 #
-# Note: Encoding issues are common. If you have problems please make sure your bot is patched for
-# utf-8 as outlined here: http://eggwiki.org/Utf-8
-# If you still have problems consider updating to the latest tcl8.6 and recompiling your bot. This
-# script DOES WORK. Its just hard to fix all the possible encoding issues up front. I'll work in the
-# fixes as I go. Check the 'Custom Charsets' section in 'Configuration' for more information about
+# Note: Encoding issues are common. If you have problems please make sure your
+# bot is patched for utf-8 as outlined here: http://eggwiki.org/Utf-8
+# If you still have problems consider updating to the latest tcl8.6 and
+# recompiling your bot. This script DOES WORK. Its just hard to fix all the
+# possible encoding issues up front. I'll work in the fixes as I go. Check the
+# 'Custom Charsets' section in 'Configuration' for more information about
 # setting charsets for specific feeds.
 #
-# Currently you can call the rss script from any channel the bot resides in or by using /msg or /query. 
-# The output is 'noticed' directly to you.
+# Currently you can call the rss script from any channel the bot resides in or
+# by using /msg or /query. The output is 'noticed' directly to you.
 #
 # Usage:
 #
@@ -48,7 +51,8 @@ set ver 0.2.0
 # List the available feeds
 # !feeds
 #
-#################################################################################################
+#
+##############################################################################
 # Configuration:
 #
 # Default number of headlines to show when ?how-many? is not specified.
@@ -83,7 +87,7 @@ set ver 0.2.0
 #
 #
 # END OF FEED CONFIGURATION
-#################################################################################################
+##############################################################################
 }
 package require http
 if {![catch {package require tls}]} { ::http::register https 443 ::tls::socket }
@@ -154,7 +158,7 @@ proc grabnews {target text} {
 			regexp {<link.*?>(.*?)</link}     $item subl link
 			if {![info exists title]} {set title "(none)"} {set title [unhtml [join [split $title]]]}
 			if {![info exists link]}  {set link  "(none)"} {set link [unhtml [join [split $link]]]}
-			set tinyurl [::headlines::tinyurl2 $link]
+			set tinyurl [::headlines::tinyurl $link]
 			puthelp "notice $target : $title ($tinyurl)"
 			if {($count == $numb)} {
 				return
@@ -170,7 +174,7 @@ proc grabnews {target text} {
 			regexp {<link.*?href=\"(.*?)\"} $item sub1 link
 			if {![info exists title]} {set title "(none)"} {set title [unhtml [join [split $title]]]}
 			if {![info exists link]}  {set link  "(none)"} {set link [unhtml [join [split $link]]]}
-			set tinyurl [::headlines::tinyurl2 $link]
+			set tinyurl [::headlines::tinyurl $link]
 			puthelp "notice $target : $feed $title ($tinyurl)"
 			if {($count == $numb)} {
 				return
@@ -276,7 +280,7 @@ proc unhtml {{data ""}} {
 	while {[string match "*  *" $data]} { regsub -all "  " $data " " data }
 	return [string trim $data]
 }
-proc tinyurl2 {url} {
+proc tinyurl {url} {
   set ua "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.0.5) Gecko/2008120122 Firefox/3.0.5"
   set http [::http::config -useragent $ua -urlencoding "utf-8"]
   set query "http://tinyurl.com/api-create.php?[http::formatQuery url $url]"
